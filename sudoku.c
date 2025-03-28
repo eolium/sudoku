@@ -136,6 +136,18 @@ bool sudoku_valide(sudoku* sudo) {
     return true;
 }
 
+void progress_bar(int x, int fin) {
+    printf("[");
+    for (int i = 0; i <= x; i++) {
+        printf("=");
+    }
+    printf(">");
+    for (int i = x; i < fin; i++) {
+        printf(" ");
+    }
+    printf("]\n");
+}
+
 bool solve_sudoku_aux(sudoku* sudo, int i, int j) {
     if (i >= sudo->taille-2 && j == sudo->taille-1) {
         return true;
@@ -144,6 +156,11 @@ bool solve_sudoku_aux(sudoku* sudo, int i, int j) {
     if (i >= sudo->taille) {
         i = 0;
         j++;
+
+        printf("\e[1;1H\e[2J");
+        printf("%d\n", sudo->nb_sudoku);
+        progress_bar(i + j * sudo->taille, sudo->taille * sudo->taille);
+        print_sudoku(sudo);
     }
 
     while (sudoku_get(sudo, i, j) != 0) {
@@ -162,10 +179,6 @@ bool solve_sudoku_aux(sudoku* sudo, int i, int j) {
     if (!case_valide(sudo, i, j)) {
         return false;
     }
-
-    printf("\e[1;1H\e[2J");
-    print_sudoku(sudo);
-    printf("%d\n", sudo->nb_sudoku);
 
     for (int x = 1; x <= sudo->taille; x++) {
         sudoku_set(sudo, i, j, x);
@@ -226,8 +239,10 @@ int main() {
 
         abort();*/
 
+        // On place quelques chifres pour générer le problème
+
         int nb = 0;
-        while (nb < sudo->taille * sudo->taille / 7) {
+        while (nb < 1) {
             int i = random() % sudo->taille;
             int j = random() % sudo->taille;
 
