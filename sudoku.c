@@ -163,7 +163,7 @@ bool solve_sudoku_aux(sudoku* sudo, int i, int j) {
         return false;
     }
 
-    system("clear");
+    printf("\e[1;1H\e[2J");
     print_sudoku(sudo);
     printf("%d\n", sudo->nb_sudoku);
 
