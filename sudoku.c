@@ -8,7 +8,6 @@ struct sudoku_s {
     int** arr;
     int taille;
     int taille_sqrt;
-    int nb_sudoku;
 };
 
 typedef struct sudoku_s sudoku;
@@ -56,10 +55,10 @@ void sudoku_set(sudoku* sudo, int i, int j, int x) {
 }
 
 int sudoku_get(sudoku* sudo, int i, int j) {
-    if (i >= sudo->taille || j >= sudo->taille) {
+    /*if (i >= sudo->taille || j >= sudo->taille) {
         printf("%d - %d\n", i, j);
         assert(0);
-    }
+    }*/
 
     return sudo->arr[i][j];
 }
@@ -82,7 +81,7 @@ void print_sudoku(sudoku* sudo) {
             printf("%d", x);
         }
         printf("\n");
-        for (int i = 0; i < 4*(sudo->taille+1)+2; i++) {
+        for (int i = 0; i < 4*sudo->taille; i++) {
             printf("-");
         }
         printf("\n");
@@ -148,8 +147,12 @@ void progress_bar(int x, int fin) {
     printf("]\n");
 }
 
+bool est_complet(sudoku* sudo, int i, int j) {
+    return i >= sudo->taille-2 && j == sudo->taille-1;
+}
+
 bool solve_sudoku_aux(sudoku* sudo, int i, int j) {
-    if (i >= sudo->taille-2 && j == sudo->taille-1) {
+    if (est_complet(sudo, i, j)) {
         return true;
     }
 
@@ -157,11 +160,15 @@ bool solve_sudoku_aux(sudoku* sudo, int i, int j) {
         i = 0;
         j++;
 
-        printf("\e[1;1H\e[2J");
-        printf("%d\n", sudo->nb_sudoku);
-        progress_bar(i + j * sudo->taille, sudo->taille * sudo->taille);
-        print_sudoku(sudo);
     }
+
+    if (est_complet(sudo, i, j)) {
+        return true;
+    }
+
+    printf("\e[1;1H\e[2J");
+    progress_bar(i + j * sudo->taille, sudo->taille * sudo->taille);
+    print_sudoku(sudo);
 
     while (sudoku_get(sudo, i, j) != 0) {
         i++;
@@ -169,11 +176,10 @@ bool solve_sudoku_aux(sudoku* sudo, int i, int j) {
             i = 0;
             j++;
         }
-    }
 
-    if (i >= sudo->taille) {
-        i = 0;
-        j++;
+        if (est_complet(sudo, i, j)) {
+            return true;
+        }
     }
 
     if (!case_valide(sudo, i, j)) {
@@ -202,6 +208,10 @@ bool solve_sudoku(sudoku* sudo) {
         return false;
     }
 
+    if (sudoku_get(sudo, 8, 8) != 0) {
+        return true;
+    }
+
     for (int x = 1; x <= sudo->taille; x++) {
         sudoku_set(sudo, sudo->taille-1, sudo->taille-1, x);
 
@@ -218,55 +228,22 @@ int main() {
 
 
     sudoku* sudo = create_sudoku(3);
-    sudo->nb_sudoku = 0;
 
-    while (true) {
-        reset_sudoku(sudo);
-
-        /*for (int j = 0; j < sudo->taille; j++) {
-            for (int i = 0; i < sudo->taille; i++) {
-                scanf(" %d", &(sudo->arr[i][j]));
-            }
+    for (int j = 0; j < 9; j++) {
+        for (int i = 0; i < 9; i++) {
+            scanf(" %d", &(sudo->arr[i][j]));
         }
-
-        for (int i = 0; i < sudo->taille; i++) {
-            for (int j = 0; j < sudo->taille; j++) {
-                if (!case_valide(sudo, i, j)) {
-                    printf("%d - %d\n", i+1, j+1);
-                }
-            }
-        }
-
-        abort();*/
-
-        // On place quelques chifres pour générer le problème
-
-        int nb = 0;
-        while (nb < 1) {
-            int i = random() % sudo->taille;
-            int j = random() % sudo->taille;
-
-            sudoku_set(sudo, i, j, 1 + (random() % (sudo->taille+1)));
-
-            if (sudoku_valide(sudo)) {
-                nb++;
-            }
-            else {
-                reset_sudoku(sudo);
-                nb = 0;
-            }
-        }
-
-        if (solve_sudoku(sudo)) {
-            printf("Sudoku résolu !\n\n");
-        }
-
-        /*system("clear");
-        print_sudoku(sudo);
-        printf("%d\n", sudo->nb_sudoku);*/
-
-        sudo->nb_sudoku++;
     }
+
+    print_sudoku(sudo);
+
+    if (solve_sudoku(sudo)) {
+        printf("Sudoku résolu !\n\n");
+        print_sudoku(sudo);
+    } else {
+        printf("Aucune solution trouvé.\n");
+    }
+
 
     free_sudoku(sudo);
 }
